@@ -16,11 +16,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install Dependencies
-        run: |
-          npm install
+        run: npm install
 
       - name: Ensure Capacitor iOS platform exists
         run: |
@@ -29,25 +28,33 @@ jobs:
           fi
 
       - name: Sync Capacitor iOS
-        run: |
-          npx cap sync ios
+        run: npx cap sync ios
 
       - name: Build iOS App (Unsigned for ESign/Scarlet)
         run: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace \
-                     -scheme App \
-                     -configuration Release \
-                     -sdk iphoneos \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO \
-                     build
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
 
       - name: Package to .IPA
         run: |
+          APP_PATH="ios/App/build/Build/Products/Release-iphoneos/App.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "Error: App.app tidak ditemukan di $APP_PATH"
+            exit 1
+          fi
+
           mkdir -p Payload
-          cp -r ios/App/build/Build/Products/Release-iphoneos/App.app Payload/
+          cp -R "$APP_PATH" Payload/
           zip -r FourTys_Gmail_Bot.ipa Payload
           rm -rf Payload
 
