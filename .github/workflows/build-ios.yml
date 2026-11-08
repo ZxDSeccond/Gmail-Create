@@ -1,0 +1,55 @@
+name: Build iOS App For Sideloading
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: |
+          npm install
+
+      - name: Sync Capacitor iOS
+        run: |
+          npx cap sync ios
+
+      - name: Build iOS App (Unsigned for ESign/Scarlet)
+        run: |
+          cd ios/App
+          # Build menggunakan xcodebuild dengan menonaktifkan strict code signing agar lolos di GitHub runner
+          xcodebuild -workspace App.xcworkspace \
+                     -scheme App \
+                     -configuration Release \
+                     -sdk iphoneos \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     build
+
+      - name: Package to .IPA
+        run: |
+          mkdir -p Payload
+          # Menyalin hasil build .app ke folder Payload untuk di-zip jadi .ipa
+          cp -r ios/App/build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -r FourTys_Gmail_Bot.ipa Payload
+          rm -rf Payload
+
+      - name: Upload Artifact .IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: FourTys-IPA
+          path: FourTys_Gmail_Bot.ipa
+
