@@ -3,146 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Gmail Bot - ZxD</title>
+    <title>Auto Gmail Bot</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #121212;
-            color: #ffffff;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            padding: 20px;
         }
+
         .card {
-            background: #1e1e1e;
+            background-color: #1e1e1e;
+            border-radius: 16px;
             padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
             width: 100%;
-            max-width: 380px;
-            box-sizing: border-box;
+            max-width: 400px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
         }
-        h2 {
+
+        .title {
             text-align: center;
-            color: #00ffcc;
-            margin-bottom: 20px;
-            font-size: 22px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #00ffa3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .input-group {
-            margin-bottom: 14px;
+
+        .form-group {
+            margin-bottom: 16px;
         }
+
         label {
             display: block;
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #a0a0a0;
+            margin-bottom: 6px;
         }
+
         input {
             width: 100%;
-            padding: 12px;
-            background: #2d2d2d;
-            border: 1px solid #444;
-            color: #fff;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-        input:focus {
-            border-color: #00ffcc;
+            padding: 12px 14px;
+            background-color: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
             outline: none;
+            transition: border-color 0.2s;
         }
+
+        input:focus {
+            border-color: #00ffa3;
+        }
+
         button {
             width: 100%;
             padding: 14px;
-            background: #00ffcc;
-            color: #000;
-            font-weight: bold;
+            background-color: #00ffa3;
             border: none;
-            border-radius: 6px;
+            border-radius: 10px;
+            color: #000000;
+            font-size: 1rem;
+            font-weight: 700;
             cursor: pointer;
             margin-top: 10px;
-            font-size: 16px;
+            transition: background-color 0.2s, opacity 0.2s;
         }
+
         button:active {
-            background: #00ccb1;
+            opacity: 0.8;
         }
+
+        button:disabled {
+            background-color: #555555;
+            cursor: not-allowed;
+        }
+
         #status {
-            margin-top: 15px;
+            margin-top: 16px;
+            font-size: 0.9rem;
             text-align: center;
-            font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
+        }
+
+        .status-success {
+            color: #00ffa3;
+        }
+
+        .status-error {
+            color: #ff4d4d;
         }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2>🤖 Auto Gmail Bot</h2>
-        
-        <div class="input-group">
+        <div class="title">
+            🤖 Auto Gmail Bot
+        </div>
+
+        <div class="form-group">
             <label>First Name</label>
-            <input type="text" id="firstName" placeholder="Contoh: Zidan" value="Zidan">
+            <input type="text" id="firstName" value="Zidan">
         </div>
-        
-        <div class="input-group">
+
+        <div class="form-group">
             <label>Last Name</label>
-            <input type="text" id="lastName" placeholder="Contoh: ZxD" value="ZxD">
+            <input type="text" id="lastName" value="ZxD">
         </div>
-        
-        <div class="input-group">
+
+        <div class="form-group">
             <label>Username Gmail</label>
-            <input type="text" id="username" placeholder="username_tanpa_gmail">
+            <input type="text" id="username" value="bangtanpa09918">
         </div>
-        
-        <div class="input-group">
+
+        <div class="form-group">
             <label>Password</label>
-            <input type="password" id="password" placeholder="Password akun">
+            <input type="password" id="password" value="Password123!">
         </div>
-        
-        <button onclick="jalankanBot()">Kirim ke Colab</button>
-        
+
+        <button id="btnSubmit" onclick="kirimKeColab()">Kirim ke Colab</button>
+
         <div id="status"></div>
     </div>
 
     <script>
-        async function jalankanBot() {
-            const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = "⏳ Mengirim data ke server Colab...";
-            statusDiv.style.color = "#ffaa00";
+        // URL Ngrok Aktif Baru
+        const NGROK_URL = "https://8356-8-235-65-91.ngrok-free.app/create-gmail";
 
-            const payload = {
-                first_name: document.getElementById('firstName').value,
-                last_name: document.getElementById('lastName').value,
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value
-            };
+        async function kirimKeColab() {
+            const btn = document.getElementById("btnSubmit");
+            const statusDiv = document.getElementById("status");
+
+            const firstName = document.getElementById("firstName").value;
+            const lastName = document.getElementById("lastName").value;
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            btn.disabled = true;
+            btn.innerText = "Mengirim...";
+            statusDiv.className = "";
+            statusDiv.innerText = "⏳ Sedang memproses ke Colab...";
 
             try {
-                // URL Static Ngrok kamu yang sudah permanen
-                let response = await fetch('https://crusted-unwidened-ishaan.ngrok-free.dev/create-gmail', {
-                    method: 'POST',
+                const response = await fetch(NGROK_URL, {
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/json'
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        first_name: firstName,
+                        last_name: lastName,
+                        username: username,
+                        password: password
+                    })
                 });
 
-                let hasil = await response.json();
-                
+                const data = await response.json();
+
                 if (response.ok) {
-                    statusDiv.innerHTML = "✅ Berhasil! " + (hasil.message || "Playwright jalan.");
-                    statusDiv.style.color = "#00ffcc";
+                    statusDiv.className = "status-success";
+                    statusDiv.innerText = "✅ " + data.message;
                 } else {
-                    statusDiv.innerHTML = "❌ Gagal: " + (hasil.message || "Error dari server");
-                    statusDiv.style.color = "#ff5555";
+                    statusDiv.className = "status-error";
+                    statusDiv.innerText = "❌ " + (data.message || "Gagal memproses data.");
                 }
             } catch (error) {
-                console.error("Network Error:", error);
-                statusDiv.innerHTML = "❌ Gagal terhubung! Cek koneksi / Colab mati.";
-                statusDiv.style.color = "#ff5555";
+                statusDiv.className = "status-error";
+                statusDiv.innerText = "❌ Gagal terhubung! Cek koneksi / Colab mati.";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Kirim ke Colab";
             }
         }
     </script>
