@@ -5,116 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auto Gmail Bot</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .card {
-            background-color: #1e1e1e;
-            border-radius: 16px;
-            padding: 24px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-        }
-
-        .title {
-            text-align: center;
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 24px;
-            color: #00ffa3;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.85rem;
-            color: #a0a0a0;
-            margin-bottom: 6px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px 14px;
-            background-color: #2a2a2a;
-            border: 1px solid #3a3a3a;
-            border-radius: 8px;
-            color: #ffffff;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input:focus {
-            border-color: #00ffa3;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: #00ffa3;
-            border: none;
-            border-radius: 10px;
-            color: #000000;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.2s, opacity 0.2s;
-        }
-
-        button:active {
-            opacity: 0.8;
-        }
-
-        button:disabled {
-            background-color: #555555;
-            cursor: not-allowed;
-        }
-
-        #status {
-            margin-top: 16px;
-            font-size: 0.9rem;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .status-success {
-            color: #00ffa3;
-        }
-
-        .status-error {
-            color: #ff4d4d;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #121212; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .card { background-color: #1e1e1e; border-radius: 16px; padding: 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .title { text-align: center; font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; color: #00ffa3; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 0.85rem; color: #a0a0a0; margin-bottom: 6px; }
+        input { width: 100%; padding: 12px; background-color: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 8px; color: #ffffff; font-size: 0.95rem; outline: none; }
+        input:focus { border-color: #00ffa3; }
+        .url-box { border: 1px solid #00ffa3; background-color: #182822; }
+        button { width: 100%; padding: 14px; background-color: #00ffa3; border: none; border-radius: 10px; color: #000; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        button:disabled { background-color: #555; cursor: not-allowed; }
+        #status { margin-top: 16px; font-size: 0.9rem; text-align: center; font-weight: 600; }
+        .status-success { color: #00ffa3; }
+        .status-error { color: #ff4d4d; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <div class="title">
-            🤖 Auto Gmail Bot
+        <div class="title">🤖 Auto Gmail Bot</div>
+
+        <div class="form-group">
+            <label style="color: #00ffa3; font-weight: bold;">🔗 Link Ngrok Aktif (dari Colab):</label>
+            <input type="text" id="ngrokUrl" class="url-box" placeholder="https://xxxx.ngrok-free.app/create-gmail">
         </div>
+
+        <hr style="border: 0.5px solid #333; margin: 15px 0;">
 
         <div class="form-group">
             <label>First Name</label>
@@ -142,17 +59,20 @@
     </div>
 
     <script>
-        // URL Ngrok Aktif Baru
-        const NGROK_URL = "https://c4df-8-235-65-91.ngrok-free.app/create-gmail";
-
         async function kirimKeColab() {
             const btn = document.getElementById("btnSubmit");
             const statusDiv = document.getElementById("status");
+            let targetUrl = document.getElementById("ngrokUrl").value.trim();
 
-            const firstName = document.getElementById("firstName").value;
-            const lastName = document.getElementById("lastName").value;
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
+            if (!targetUrl) {
+                alert("Isi dulu Link Ngrok dari Colab!");
+                return;
+            }
+
+            // Otomatis nambahin /create-gmail kalau kelewat
+            if (!targetUrl.includes("/create-gmail")) {
+                targetUrl = targetUrl.replace(/\/$/, "") + "/create-gmail";
+            }
 
             btn.disabled = true;
             btn.innerText = "Mengirim...";
@@ -160,16 +80,14 @@
             statusDiv.innerText = "⏳ Sedang memproses ke Colab...";
 
             try {
-                const response = await fetch(NGROK_URL, {
+                const response = await fetch(targetUrl, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        first_name: firstName,
-                        last_name: lastName,
-                        username: username,
-                        password: password
+                        first_name: document.getElementById("firstName").value,
+                        last_name: document.getElementById("lastName").value,
+                        username: document.getElementById("username").value,
+                        password: document.getElementById("password").value
                     })
                 });
 
